@@ -1,0 +1,630 @@
+---
+title: 'Statistical Programming'
+author: "Yi-cheng Liu"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Outline
+**1. Introduction to the R language **  
+1.1 First Steps  
+1.2 Basic features of R  
+1.3 Vectors in R  
+1.4 Data storage in R  
+1.5 Packages, libraries, and repositories  
+1.6 Getting help  
+1.7 Data frames and lists  
+1.8 Data input and output  
+**2. Programming statistical graphics **  
+2.1 High level plots  
+2.2 Low level graphics functions  
+
+
+
+## Contents
+### 1  Introduction to the R language
+
+#### 1.1 First Steps
+
+##### Calculator
+
+*  *+* (add), - (subtract), * (multiply), / (divide)
+```{r}
+3+2
+6-3
+5*3
+8/6
+```
+* sequence
+```{r}
+17:28
+```
+* power
+```{r}
+3^4
+```
+* modular arithmetic 
+```{r}
+31 %% 7
+```
+* integer part of a fraction
+```{r}
+31 %/% 7
+```
+
+##### Named storage
+```{r}
+interest.30 <- 1.0025^30
+interest.30
+```
+```{r}
+intRate <- 0.01
+n <- 10
+principal <- 1500
+payment <- principal * intRate / (1 - (1 + intRate)^(-n))
+payment
+```
+
+##### Quitting R 
+`q()`
+  
+  
+#### 1.2 Basic features of R
+
+##### Functions
+* mean
+```{r}
+x <- 1:10
+mean(x)
+```
+* object  
+A list of all objects in the current workspace can be printed to the screen using the `objects()` function
+```{r}
+objects()
+```
+
+
+#### 1.3 Vectors in R
+
+##### Numeric vectors
+
+A numeric vector is a list of numbers. The `c()` function is used to collect things together into a vector.  
+```{r}
+x <- c(0, 7, 8)
+x
+```
+```{r}
+numbers5to20 <- 5:20
+numbers5to20
+```
+```{r}
+ab <- c(numbers5to20, x)
+ab
+```
+
+##### Extracting elements from vectors
+
+```{r}
+ab[11]
+```
+```{r}
+ab[c(3, 6, 7)]
+```
+```{r}
+ab[3:7]
+```
+Always be careful to make sure that vector indices are integers. When fractional values are used, they will be truncated towards 0.  
+```{r}
+ab[0.6]
+```
+
+##### Vector arithmetic
+ 
+```{r}
+x
+x * 3
+```
+```{r}
+y <- x - 5
+y
+```
+```{r}
+x ^ 3
+```
+When the vectors are different lengths, the shorter one is extended by *recycling*: values are repeated, starting at the beginning.  
+```{r}
+c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10) %% 2:3
+```
+R will give a warning if the length of the longer vector is not a multiple of the length of the smaller one, because that is often a symptom of an error in the code.  
+```{r}
+c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10) %% 2:4
+```
+
+##### Simple patterned vectors  
+
+* seq()  
+```{r}
+seq(1, 21, by = 2)
+```
+* rep()  
+```{r}
+rep(3, 12) # repeat the value 3, 12 times
+```
+```{r}
+rep(seq(2, 20, by = 2), 2) # repeat the pattern 2 4 ... 20, twice
+```
+```{r}
+rep(c(1, 4), c(3, 2)) # repeat 1, 3 times and 4, twice
+```
+```{r}
+rep(c(1, 4), each = 3) # repeat each value 3 times
+```
+```{r}
+rep(1:10, rep(2, 10)) # repeat each value twice
+```
+
+##### Vectors with random patterns
+
+The `sample()` function allows us to simulate things like the results of the repeated tossing of a 6-sided die.  
+```{r}
+sample(1:6, size = 8, replace = TRUE) # an imaginary die is tossed 8 times
+```
+
+##### Character vectors  
+
+```{r}
+colors <- c("red", "yellow", "blue")
+more.colors <- c(colors, "green", "magenta", "cyan")
+# this appended some new elements to colors
+z <- c("red", "green", 1) # an attempt to mix data types in a vector
+more.colors
+z
+```
+
+* take substrings  
+It takes arguments `substr(x, start, stop)`, where x is a vector of character strings, and start and stop say which characters to keep.  
+```{r}
+substr(colors, 1, 2)
+```
+
+* building up strings  
+```{r}
+paste(colors, "flowers")
+```
+The `sep` parameter controls what goes between the components being pasted together.  
+```{r}
+paste("several ", colors, "s", sep = "")
+```
+The `paste0()` function is a shorthand way to set sep = "".  
+```{r}
+paste0("several ", colors, "s")
+```
+The `collapse` parameter to paste() allows all the components of the resulting vector to be collapsed into a single string.  
+```{r}
+paste("I like", colors, collapse = ", ")
+```
+
+##### Factors  
+
+Factors offer an alternative way to store character data.  
+```{r}
+grp <- c("control", "treatment", "control", "treatment")
+grp
+```
+```{r}
+grp <- factor(grp)
+grp
+```
+Factors can be an efficient way of storing character data when there are repeats among the vector elements. This is because the levels of a factor are internally coded as integers.  
+```{r}
+as.integer(grp)
+```
+```{r}
+levels(grp)
+levels(grp)[as.integer(grp)]
+```
+The `levels()` function can be used to change factor labels as well. For example, suppose we wish to change the "control" label to "placebo". Since "control" is the first level, we change the first element of the `levels(grp)` vector:  
+```{r}
+levels(grp)[1] <- "placebo"
+```
+An important use for factors is to list all possible values, even if some are not present.  
+```{r}
+sex <- factor(c("F", "F"), levels = c("F", "M"))
+sex
+```
+
+##### Matrices and arrays
+
+* matrix  
+```{r}
+m <- matrix(1:6, nrow = 2, ncol = 3)
+m
+```
+We can then access elements using two indices. For example, the value in the first row, second column is  
+```{r}
+m[1, 2]
+m[4]
+```
+Here elements are selected in the order in which they are stored internally: down the first column, then down the second, and so on. This is known as *column-major storage* order.
+```{r}
+m[1,]
+m[, 1]
+```
+
+* array  
+Arrays have multiple indices, and are created using the array function:  
+```{r}
+a <- array(1:24, c(3, 4, 2))
+a
+```
+
+
+#### 1.4 Data storage in R  
+
+##### Approximate storage of numbers  
+```{r}
+n <- 1:10
+1.25 * (n * 0.8) - n
+```
+Example:  
+Consider the standard formula for the sample variance of a sample \(x1,x2,\ldots,xn\):  
+\(s^2=\frac{1}{n-1}\sum_{i=1}^n(x_i-\bar{x})^2 \),  
+where \(\bar{x}\) is the sample mean, (1/n)\(\sum{x_i}\). In R, \(s^2\) is available as `var()`, and \(\bar{x}\) is `mean()`.  
+```{r}
+x <- 1:11
+mean(x)
+var(x)
+sum((x - mean(x))^2) / 10
+```
+Because this formula requires calculation of \(\bar{x}\) first and the sum of squared deviations second, it requires that all \(x_i\) values be kept in memory. Not too long ago memory was so expensive that it was advantageous to rewrite the formula as  
+\(s^2=\frac{1}{n-1}(\sum_{i=1}^nx_i^2-n\bar{x}^2) \).  
+This is called the *¡§one-pass formula,¡¨* because we evaluate each \(x_i\) value just once, and accumulate the sums of \(x_i\) and of \(x_i^2\) . It gives the correct answer, both mathematically and in our example:  
+```{r}
+(sum(x^2) - 11 * mean(x)^2) / 10
+```
+However, notice what happens if we add a large value A to each \(x_i\). The sum \(\sum{x_i}^2\) increases by approximately \(nA^2\), and so does \(n\bar{x}^2\). This doesn¡¦t change the variance, but it provides the conditions for a ¡§catastrophic loss of precision¡¨ when we take the difference:  
+```{r}
+A <- 1.e10
+x <- 1:11 + A
+var(x)
+(sum(x^2) - 11 * mean(x)^2) / 10
+```
+
+##### Missing values and other special values  
+The missing value symbol is NA. Missing values often arise in real data problems, but they can also arise because of the way calculations are performed:  
+```{r}
+some.evens <- NULL # creates a vector with no elements
+some.evens[seq(2, 20, 2)] <- seq(2, 20, 2)
+some.evens
+```
+```{r}
+x <- c(0, 1, 2)
+x / x
+```
+The NaN symbol denotes a value which is ¡§not a number¡¨ which arises as a result of attempting to compute the indeterminate 0/0. This symbol is sometimes used when a calculation does not make sense.  
+
+
+#### 1.5 Packages, libraries, and repositories
+
+In R, a package is a module containing functions, data, and documentation. R always contains the base packages (e.g. `base`, `stats`, `graphics`); these contain things that everyone will use. There are also contributed packages (e.g. `knitr` and `chron`); these are modules written by others to use in R.  
+When you start your R session, you will have some packages loaded and available for use, while others are stored on your computer in a *library*. To be sure a package is loaded, run code like  
+```{r}
+library(knitr)
+```
+To see which packages are loaded, run  
+```{r}
+search()
+```
+Thousands of contributed packages are available, though you likely have only a few dozen installed on your computer.  
+This means that the package doesn¡¦t exist on your computer, but it might be available in a repository online. The biggest repository of R packages is known as CRAN. To install a package from CRAN, you can run a command like `install.packages()` or, within RStudio, click on the `Packages` tab in the Output Pane, choose `Install`, and enter the name in the resulting dialog box.  
+
+
+#### 1.6 Getting help  
+
+##### Built-in help pages  
+If you know the name of the function that you need help with, the `help()` function is likely sufficient. It may be called with a string or function name as an argument, or you can simply put a question mark (?) in front of your query.  
+```{r}
+?q
+```
+or  
+```{r}
+help(q)
+```
+
+##### Some built-in graphics functions  
+
+* histogram  
+```{r}
+hist(islands)
+x <- seq(1, 10)
+y <- x^2 - 10 * x
+plot(x, y)
+```
+* `curve()`  
+```{r}
+curve(expr = sin, from = 0, to = 6 * pi)
+```
+The `expr` parameter is either a function (whose output is a numeric vector when the input is a numeric vector) or an expression in terms of x.An example of the latter type of usage is  
+```{r}
+curve(x^2 - 10 * x, from = 1, to = 10)
+```
+
+##### Some elementary built-in functions  
+* The sample median  
+```{r}
+median(x) # computes the median or 50th percentile of the data in x
+```
+* The sample variance   
+```{r}
+var(x) # computes the variance of the data in x
+```
+* Other summary measures  
+```{r}
+summary(x) # computes several summary statistics on the data in x
+length(x) # number of elements in x
+min(x) # minimum value of x
+max(x) # maximum value of x
+pmin(x, y) # pairwise minima of corresponding elements of x and y
+pmax(x, y) # pairwise maxima of x and y
+range(x) # difference between maximum and minimum of data in x
+IQR(x) # interquartile range: difference between 1st and 3rd
+# quartiles of data in x
+```
+* pairwise minima  
+```{r}
+x <- 1:5
+y <- 7:3
+pmin(x,y)
+```
+
+
+#### 1.7 Data frames and lists
+
+```{r}
+women
+```
+```{r}
+summary(women)
+```
+* counting the number of rows  
+```{r}
+nrow(women)
+```
+* counting the number of columns  
+```{r}
+ncol(women)
+```
+* both number of rows and columns  
+```{r}
+dim(women)
+```
+* summary  
+```{r}
+str(women)
+```
+
+##### Extracting data frame elements and subsets  
+```{r}
+women[7, 2]
+women[3, ]
+women[4:7, 1]
+```
+Data frame columns can also be addressed using their names using the `$` operator.  
+```{r}
+women$weight
+```
+```{r}
+women$height[women$weight > 140]
+```
+* with  
+The `with()` function allows us to access columns of a data frame directly without using the `$`.  
+```{r}
+with(women, weight/height)
+```
+
+##### Taking random samples from populations  
+
+The `sample()` function can be used to take samples (with or without replacement) from larger finite populations.  
+```{r}
+sampleID <- sample(1:15000, size = 8, replace = FALSE)
+sampleID
+```
+
+##### Constructing data frames  
+Use the `data.frame()` function to construct data frames from vectors that already exist in your workspace:  
+```{r}
+xy <- data.frame(x, y)
+xy
+```
+```{r}
+xynew <- data.frame(x, y, new = 10:1)
+xynew
+```
+
+##### Data frames can have non-numeric columns  
+
+Columns of data frames can be of different types.  
+```{r}
+summary(chickwts)
+```
+```{r}
+nrow(chickwts)
+```
+An important point to be aware of is that the `data.frame()` function automatically converts character vectors to factors. As an example, consider the following data that might be used as a baseline in an obesity study:  
+```{r}
+gender <- c("M", "M", "F", "F", "F")
+weight <- c(73, 68, 52, 69, 64)
+obesityStudy <- data.frame(gender, weight)
+```
+The vector gender is clearly a character vector, but the first column of the *obesityStudy* data frame is a factor, as can be seen from  
+```{r}
+obesityStudy$gender
+```
+Now, suppose we wish to globally change *F* to *Female* in the data frame. An incorrect approach is  
+```{r}
+wrongWay <- obesityStudy
+whereF <- wrongWay$gender == "F"
+wrongWay$gender[whereF] <- "Female"
+wrongWay$gender
+```
+The correct approach is through the levels of the `obesityStudy$gender` factor:  
+```{r}
+levels(obesityStudy$gender)[1] <- "Female" # F is the 1st level -- why?
+obesityStudy$gender # check that F was really replaced by Female
+```
+
+##### Lists  
+
+Data frames are actually a special kind of list, or structure. Lists in R can contain any other objects.  
+You can see the names of the objects in a list using the `names()` function, and extract parts of it.  
+The `list()` function is one way of organizing multiple pieces of output from functions.  
+```{r}
+x <- c(3, 2, 3)
+y <- c(7, 7)
+z <- list(x = x, y = y)
+z
+```
+* lapply  
+The `lapply()` function ¡§applies¡¨ another function to every element of a list and returns the results in a new list:  
+```{r}
+lapply(z, mean)
+```
+* vapply  
+In a case like this, it might be more convenient to have the results in a vector; the `vapply()` function does that.  
+```{r}
+vapply(z, mean, 1)
+```
+```{r}
+vapply(z, summary, numeric(6))
+```
+
+
+#### 1.8 Data input and output  
+
+
+##### Saving and retrieving image files  
+
+```{r}
+save.image("temp.RData")
+```
+
+##### The `read.table` function  
+
+`pretend.df <- read.table("c:/myfiles/pretend.dat", header = TRUE)`
+
+
+
+### 2  Programming statistical graphic  
+
+The `grid` package provides the basis for a newer graphics system. It also has facilities to produce good quality graphics, but the programmer has access to the individual pieces of a graph, and can modify them: a graph is more like a physical model being built and displayed, rather than just drawn. The `lattice` and `ggplot2` packages provide functions for highlevel plots based on grid graphics.  
+
+#### 2.1 High level plots  
+
+##### Bar charts and dot charts  
+
+* barplot  
+```{r}
+WorldPhones51 <- WorldPhones[1, ]
+WorldPhones51
+barplot(WorldPhones51)
+```
+```{r}
+barplot(WorldPhones51, cex.names = 0.75, cex.axis = 0.75, main = "Numbers of Telephones in 1951")
+```
+An alternative way to plot the same kind of data is in a dot chart  
+* dotchart  
+```{r}
+dotchart(WorldPhones51, xlab = "Numbers of Phones (¡¦000s)")
+```
+Data sets having more complexity can also be displayed using these graphics functions. The `barplot()` function has a number of options which allow for side-by-side or stacked styles of displays, legends can be included using the `legend` argument, and so on.  
+```{r}
+barplot(VADeaths, beside = TRUE, legend = TRUE, ylim = c(0, 90), ylab = "Deaths per 1000", main = "Death rates in Virginia")
+```
+```{r}
+dotchart(VADeaths, xlim = c(0, 75), xlab = "Deaths per 1000", main = "Death rates in Virginia", cex = 0.8)
+```
+
+##### Pie charts  
+```{r}
+groupsizes <- c(18, 30, 32, 10, 10)
+labels <- c("A", "B", "C", "D", "F")
+```
+```{r}
+pie(groupsizes, labels, col = c("grey40", "white", "grey", "black", "grey90"))
+```
+
+##### Histograms  
+
+```{r}
+hist(log(1000*islands, 10), xlab = "Area (on base 10 log scale)", main = "Areas of the World¡¦s Largest Landmasses")
+```
+
+##### Box plots  
+
+The basic construction of the box part of the boxplot is as follows.  
+1. A horizontal line is drawn at the median.  
+2. Split the data into two halves, each containing the median.  
+3. Calculate the upper and lower quartiles as the medians of each half, and draw horizontal lines at each of these values. Then connect the lines to form a rectangular box.  
+The box thus drawn defines the *interquartile range (IQR)*. This is the difference between the upper quartile and the lower quartile. We use the IQR to give a measure of the amount of variability in the central portion of the dataset, since about 50% of the data will lie within the box.  
+```{r}
+boxplot(Sepal.Length ~ Species, data = iris, ylab = "Sepal length (cm)", main = "Iris measurements",
+boxwex = 0.5)
+```
+
+##### Scatterplots  
+
+```{r}
+x <- rnorm(100) # assigns 100 random normal observations to x
+y <- rpois(100, 30) # assigns 100 random Poisson observations to y; mean value is 30
+mean(y) # the resulting value should be near 30
+```
+```{r}
+plot(x, y, main = "Poisson versus Normal")
+```
+```{r}
+plot(x, y, pch = 16) # changes the plot symbol to a solid dot
+plot(x, y, type = 'l') # plots a broken line (a dense tangle of line segments here)
+plot(sort(x), sort(y), type = 'l') # a plot of the sample "quantiles"
+```
+
+#####¡@Plotting data from data frames  
+
+```{r}
+unique(as.character(Orange$Tree))
+```
+```{r}
+plot(circumference ~ age, data = Orange)
+```
+```{r}
+plot(circumference ~ age, data = Orange, pch = as.character(Tree), cex = 0.75)
+```
+
+##### QQplots  
+```{r}
+par(mfrow = c(1,4))
+X <- rnorm(1000)
+A <- rnorm(1000)
+qqplot(X, A, main = "A and X are the same")
+B <- rnorm(1000, mean = 3, sd = 2)
+qqplot(X, B, main = "B is rescaled X")
+C <- rt(1000, df = 2)
+qqplot(X, C, main = "C has heavier tails")
+D <- rexp(1000)
+qqplot(X, D, main = "D is skewed to the right")
+```
+
+
+#### 2.2 Low level graphics functions  
+
+##### Adding to plots  
+
